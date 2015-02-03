@@ -11,37 +11,41 @@ from django.core import serializers
 
 # Create your views here.
 def index(request):
-    context = {}
-    child1 = []
-    url = "https://api.stackexchange.com/2.2/users/2545197%3B787980/questions?order=desc&sort=activity&site=stackoverflow"
-    response = requests.get(url)
-    childict = {}
-    data = response.json()
-    # print data
+    str_query = ""
+    if request.method=="POST":
+        query = json.loads(request.body)
+        for key, value in query.items()
+            str_query = str_query + ";" + key
+        context = {}
+        child1 = []
+        url = "https://api.stackexchange.com/2.2/users/" + str_query +  "/questions?order=desc&sort=activity&site=stackoverflow"
+        response = requests.get(url)
+        childict = {}
+        data = response.json()
+        # print data
+        # print test.json
+        li = []
+        for key, value in data.items():
+            if key == "items":
+                for val in value:
 
-    for key, value in data.items():
-        if key == "items":
-            # child1.append({"owner" : val[0]['owner']})
-            for val in value:
-                user_quest = val['owner']['display_name']
-                for test in value:
-                    if test['owner']['display_name'] == user_quest:
-                        child1.append(test)
-                    else:
-                        break
-                print child1
-                print "------------------------------------------------------------"
-                child1 = []
+                    # user_quest = val['owner']['display_name']
+                    # for test in value:
+                    if val['owner']['display_name'] not in li:
+                        li.append(val['owner']['display_name'])
 
+                    # print "----------------------"
 
-            # for val in value:
-            #     # print val
-            #     if not any(d.get(val['owner']['display_name'], None) == val['owner'] for d in value1):
-            #         value1.append({val['owner']['display_name'] : {val['owner']})
-        # except:
-        #     pass
-        # print "key" , key
-        # print "value" , val
-    # print value1
-    return HttpResponse(json.dumps(data), content_type='application/json')
-    # return render(request, 'index.html', context)
+        # print li
+        # default_value = []
+        # a = dict.fromkeys(li, default_value)
+        a = {k: [] for k in li}
+        # for k, v in a.items():
+        for key, value in data.items():
+            if key == "items":
+                for val in value:
+                    a[val['owner']['display_name']].append(val)
+        print a
+        d1 = dict(a.items()[len(a)/2:])
+        d2 = dict(a.items()[:len(a)/2])
+        return HttpResponse(json.dumps(a), content_type='application/json')
